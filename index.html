@@ -168,6 +168,7 @@
   .tag.chimoku{background:var(--lemon);color:#8a6a00;}
   .tag.koaza{background:var(--sky);color:#256ba8;}
   .tag.karite{background:var(--berry);color:#fff;}
+  .tag.lent{background:#FFC24B;color:#7a5c00;}
   .card-meta{font-size:11.5px;color:var(--ink-soft);display:flex;gap:12px;flex-wrap:wrap;}
   .card-meta b{color:var(--ink);font-weight:700;}
   .ref-mini{font-size:8.5px;color:var(--ink-soft);background:var(--bg-2);border-radius:6px;padding:0 4px;margin-left:3px;opacity:.8;}
@@ -380,7 +381,7 @@
   }
   .alert-btn:hover{background:#ffbfa8;}
   .st-pill{
-    display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-size:11px;font-weight:700;white-space:nowrap;
+    display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;white-space:nowrap;
   }
   .lm-filter{
     padding:8px 12px;border:none;border-radius:18px;font-size:12px;font-weight:700;
@@ -582,14 +583,25 @@
     </div>
 
     <div class="sect">📑 契約</div>
-    <div class="row2">
-      <div class="field">
-        <label>借受者</label>
-        <select id="fKarite">
-          <option value="株式会社プラウド">株式会社プラウド</option>
-          <option value="なし">なし</option>
-        </select>
-      </div>
+    <div class="field">
+      <label>契約の区分</label>
+      <select id="fDeal">
+        <option value="借りている">借りている（自社が借主）</option>
+        <option value="貸している">貸している（自社が貸主）</option>
+        <option value="自己所有・自己耕作">自己所有・自己耕作</option>
+      </select>
+      <div class="hint-mini" id="dealHint"></div>
+    </div>
+    <div class="field">
+      <label id="kariteLabel">借受者</label>
+      <input type="text" id="fKarite" list="kariteList" placeholder="株式会社プラウド">
+      <datalist id="kariteList">
+        <option value="株式会社プラウド"></option>
+        <option value="なし"></option>
+      </datalist>
+    </div>
+
+    <div id="sectContract">
       <div class="field">
         <label>適用法</label>
         <select id="fLaw">
@@ -600,47 +612,48 @@
           <option value="相対">相対</option>
         </select>
       </div>
-    </div>
-    <div class="row2">
-      <div class="field">
-        <label>始期（月の1日）</label>
-        <input type="month" id="fStart">
-        <div class="hint-mini" id="startWareki"></div>
+      <div class="row2">
+        <div class="field">
+          <label>始期（月の1日）</label>
+          <input type="month" id="fStart">
+          <div class="hint-mini" id="startWareki"></div>
+        </div>
+        <div class="field">
+          <label>終期（月末日）</label>
+          <input type="month" id="fEnd">
+          <div class="hint-mini" id="endWareki"></div>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>期間</label>
+          <input type="text" id="fTerm" readonly placeholder="自動計算">
+        </div>
+        <div class="field">
+          <label>権利の種類</label>
+          <select id="fRight">
+            <option value="">えらぶ</option>
+            <option value="賃貸借">賃貸借</option>
+            <option value="使用貸借">使用貸借</option>
+          </select>
+        </div>
       </div>
       <div class="field">
-        <label>終期（月末日）</label>
-        <input type="month" id="fEnd">
-        <div class="hint-mini" id="endWareki"></div>
-      </div>
-    </div>
-    <div class="row2">
-      <div class="field">
-        <label>期間</label>
-        <input type="text" id="fTerm" readonly placeholder="自動計算">
-      </div>
-      <div class="field">
-        <label>権利の種類</label>
-        <select id="fRight">
-          <option value="">えらぶ</option>
-          <option value="賃貸借">賃貸借</option>
-          <option value="使用貸借">使用貸借</option>
+        <label>ステータス</label>
+        <select id="fStatus">
+          <option value="">自動判定にまかせる</option>
+          <option value="手続き中">手続き中</option>
+          <option value="更新済">更新済</option>
+          <option value="解約予定">解約予定</option>
         </select>
+        <div class="hint-mini" id="statusAuto"></div>
       </div>
-    </div>
-    <div class="field">
-      <label>ステータス</label>
-      <select id="fStatus">
-        <option value="">自動判定にまかせる</option>
-        <option value="手続き中">手続き中</option>
-        <option value="更新済">更新済</option>
-        <option value="解約予定">解約予定</option>
-      </select>
-      <div class="hint-mini" id="statusAuto"></div>
-    </div>
-    <div class="field">
-      <button type="button" class="btn renew" id="renewBtn">🔁 次期契約をつくる（期間をずらしてコピー）</button>
+      <div class="field">
+        <button type="button" class="btn renew" id="renewBtn">🔁 次期契約をつくる（期間をずらしてコピー）</button>
+      </div>
     </div>
 
+    <div id="sectRent">
     <div class="sect">💰 借賃</div>
     <div class="field" id="wrapRentMode">
       <label>10aあたり／固定 の別</label>
@@ -659,6 +672,7 @@
         <input type="number" id="fRent" step="1" placeholder="金額">
       </div>
     </div>
+    </div><!-- /sectRent -->
 
     <div class="sect">📝 メモ</div>
     <div class="field">
@@ -691,6 +705,7 @@
         <option value="要更新">要更新</option>
         <option value="期限切れ">期限切れ</option>
         <option value="契約中">契約中</option>
+        <option value="自己所有">自己所有</option>
         <option value="手続き中">手続き中</option>
         <option value="更新済">更新済</option>
         <option value="解約予定">解約予定</option>
@@ -740,11 +755,16 @@
   <div class="setup-body">
     <label class="setup-label">色分けの基準</label>
     <select id="colorByField">
-      <option value="none">なし（デフォルト）</option>
+      <option value="none">なし（台帳に登録済みの筆を一律で色付け）</option>
+      <option value="usage">耕作の状況ごと（自社で耕作／他人に貸している）</option>
       <option value="status">ステータスごと</option>
       <option value="karite">借受者ごと</option>
       <option value="owner">所有者ごと</option>
     </select>
+    <p class="setup-note" style="margin-top:8px;font-size:11.5px;">
+      ※「なし」のときの色は、<b>実際に耕作しているか</b>ではなく<b>この台帳に登録してあるか</b>を表しています。
+      耕作の実態で塗り分けたいときは「耕作の状況ごと」を選んでください。
+    </p>
     <div id="colorRules" class="color-rules"></div>
     <div class="setup-actions">
       <button class="btn save" id="colorDone">とじる</button>
@@ -771,7 +791,10 @@
     <h4>🔁 契約更新</h4>
     <p>詳細画面の「次期契約をつくる」を押すと、始期・終期が次の期間へ自動でずれ、ステータスが「手続き中」になります。内容を確認して保存してください。</p>
     <h4>🎨 色分け</h4>
-    <p>「色分け」から借受者ごと・所有者ごとに色を付けられます。<b>「なし（デフォルト）」</b>を選ぶと色は消え、全体を見やすくできます。</p>
+    <p>初期状態の色は、<b>この台帳に登録してあるかどうか</b>を表しています（実際に耕作しているかではありません）。<br>
+    「色分け」から<b>耕作の状況ごと</b>（自社で耕作／他人に貸している）、ステータスごと、借受者ごと、所有者ごとに塗り分けられます。</p>
+    <h4>🤝 貸している農地</h4>
+    <p>自社の農地を他人に貸している場合は、詳細画面の<b>「契約の区分」</b>で「貸している」を選んでください。一覧やカードに「貸出中」と表示され、色分けでも自社の耕作地と区別できます。</p>
     <h4>🚫 非農地</h4>
     <p>農地でない区画は、詳細画面の「非農地」で隠せます。「非農地を表示」で戻して解除もできます。</p>
     <h4>📋 一覧・出力</h4>
@@ -937,6 +960,11 @@ function darken(hex, amt){
 function customColorFor(fid){
   const rec = managed[fid];
   if(!rec) return null;
+  if(colorByField === 'usage'){
+    const u = usageOf(rec);
+    const map = colorMap['usage'] || {};
+    return map[u] || USAGE_COLORS[u] || null;
+  }
   if(colorByField === 'status'){
     const st = statusOf(rec);
     const map = colorMap['status'] || {};
@@ -1150,6 +1178,7 @@ const STATUS_COLORS = {
   '要更新'  : '#FFC24B',
   '期限切れ': '#F0568B',
   '未契約'  : '#B9B2C9',
+  '自己所有': '#7ED957',
   '手続き中': '#5EB0F0',
   '更新済'  : '#7ED957',
   '解約予定': '#9B7BE0'
@@ -1160,7 +1189,10 @@ function endDate(endYm){
   return new Date(y, m, 0, 23, 59, 59);   // その月の末日
 }
 function autoStatus(rec){
-  if(!rec || !rec.end) return '未契約';
+  if(!rec) return '未契約';
+  // 自己所有・自己耕作は契約が存在しないので期限の概念がない
+  if(rec.deal === '自己所有・自己耕作') return '自己所有';
+  if(!rec.end) return '未契約';
   const ed = endDate(rec.end);
   if(!ed) return '未契約';
   const now = new Date();
@@ -1175,6 +1207,58 @@ function statusOf(rec){
   return rec.status ? rec.status : autoStatus(rec);
 }
 function statusColor(rec){ return STATUS_COLORS[statusOf(rec)] || '#B9B2C9'; }
+
+// 背景色に応じて読みやすい文字色（明るい背景には濃い文字）を返す
+function textOn(bg){
+  const h = String(bg||'#cccccc').replace('#','');
+  const r = parseInt(h.substr(0,2),16), g = parseInt(h.substr(2,2),16), b = parseInt(h.substr(4,2),16);
+  // 相対輝度がある程度高ければ濃い文字にする
+  const lum = (0.2126*r + 0.7152*g + 0.0722*b) / 255;
+  return lum > 0.45 ? '#3d3348' : '#ffffff';
+}
+
+// ===== 耕作の状況（契約の区分から導く）=====
+// 「借りている」「自己所有・自己耕作」→ 自社で耕作
+// 「貸している」→ 他人に貸している
+const USAGE_COLORS = {
+  '自社で耕作': '#5FC9AC',
+  '他人に貸している': '#FFC24B'
+};
+function usageOf(rec){
+  if(!rec) return '';
+  const d = rec.deal || '借りている';
+  return (d === '貸している') ? '他人に貸している' : '自社で耕作';
+}
+
+// 契約の区分に応じて「借受者」欄の見出しと説明を切り替える
+function updateDealUI(){
+  const deal = document.getElementById('fDeal').value;
+  const label = document.getElementById('kariteLabel');
+  const karite = document.getElementById('fKarite');
+  const hint = document.getElementById('dealHint');
+  // 自己所有・自己耕作は契約が無いので、契約系の入力欄を隠す
+  const self = (deal === '自己所有・自己耕作');
+  ['sectContract','sectRent'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.style.display = self ? 'none' : '';
+  });
+  if(deal === '貸している'){
+    label.textContent = '借受者（貸した相手）';
+    karite.placeholder = '相手の氏名・法人名';
+    hint.textContent = '自社の農地を他人に貸している状態です';
+    hint.style.color = USAGE_COLORS['他人に貸している'];
+  } else if(self){
+    label.textContent = '耕作者';
+    karite.placeholder = '株式会社プラウド';
+    hint.textContent = '契約がないため、契約・借賃の入力は不要です';
+    hint.style.color = USAGE_COLORS['自社で耕作'];
+  } else {
+    label.textContent = '借受者（借りている側）';
+    karite.placeholder = '株式会社プラウド';
+    hint.textContent = '他人の農地を借りて自社で耕作している状態です';
+    hint.style.color = USAGE_COLORS['自社で耕作'];
+  }
+}
 
 // 借賃の自動計算（10aあたり単価 × 登記面積/1000）
 function calcRent(){
@@ -1235,7 +1319,9 @@ function openDetail(fid){
   g('fOwnerAddr').value = rec ? (rec.ownerAddr||'') : '';
   g('fOwnerTel').value = rec ? (rec.ownerTel||'') : '';
   // 契約
+  g('fDeal').value = rec ? (rec.deal||'借りている') : '借りている';
   g('fKarite').value = rec ? (rec.karite||'株式会社プラウド') : '株式会社プラウド';
+  updateDealUI();
   g('fLaw').value = rec ? (rec.law||'') : '';
   g('fStart').value = rec ? (rec.start||'') : '';
   g('fEnd').value = rec ? (rec.end||'') : '';
@@ -1293,6 +1379,7 @@ document.getElementById('fRentMode').addEventListener('change', calcRent);
 document.getElementById('fRentUnit').addEventListener('input', calcRent);
 document.getElementById('fRegArea').addEventListener('input', calcRent);
 document.getElementById('fRight').addEventListener('change', calcRent);
+document.getElementById('fDeal').addEventListener('change', updateDealUI);
 
 // ステータスの自動判定を表示（手動選択時はその旨）
 function updateStatusHint(){
@@ -1317,6 +1404,7 @@ document.getElementById('carryBtn').addEventListener('click', () => {
   g('fOwner').value = lastEntry.owner || '';
   g('fOwnerAddr').value = lastEntry.ownerAddr || '';
   g('fOwnerTel').value = lastEntry.ownerTel || '';
+  g('fDeal').value = lastEntry.deal || '借りている';
   g('fKarite').value = lastEntry.karite || '株式会社プラウド';
   g('fLaw').value = lastEntry.law || '';
   g('fStart').value = lastEntry.start || '';
@@ -1324,6 +1412,7 @@ document.getElementById('carryBtn').addEventListener('click', () => {
   g('fRight').value = lastEntry.right || '';
   g('fRentMode').value = lastEntry.rentMode || 'per10a';
   g('fRentUnit').value = lastEntry.rentUnit || '';
+  updateDealUI();
   updateWareki(); updateTerm(); calcRent(); updateStatusHint();
   setSyncStatus('前回の内容を引き継ぎました（登記面積は入力してください）', 'busy', true);
 });
@@ -1357,6 +1446,13 @@ document.getElementById('fKoaza').addEventListener('input', () => {
 
 // 大字（「大字」除去）＋小字 を結合した表示名  例: 中新田 芝 / 中新田（元今成分） 武蔵野
 function shortOaza(oaza){ return String(oaza||'').replace(/^大字/,''); }
+// 並び順のグループ：中新田系 → 堀兼系（「（元〇〇分）」は区別しない）
+function oazaGroupOrder(oaza){
+  const o = String(oaza||'');
+  if(o.startsWith('大字中新田')) return 0;
+  if(o.startsWith('大字堀兼'))   return 1;
+  return 2;
+}
 function combinedOazaKoaza(oaza, koaza){
   const o = shortOaza(oaza);
   const k = String(koaza||'').trim();
@@ -1404,7 +1500,7 @@ document.getElementById('fOwnerPick').addEventListener('change', function(){
 });
 
 // 入力中の内容が保存されずに失われるのを防ぐ
-const FORM_IDS = ['fKoaza','fRegArea','fOwner','fOwnerAddr','fOwnerTel','fKarite','fLaw',
+const FORM_IDS = ['fKoaza','fRegArea','fOwner','fOwnerAddr','fOwnerTel','fDeal','fKarite','fLaw',
                   'fStart','fEnd','fRight','fStatus','fRentMode','fRentUnit','fRent','fNote'];
 let formSnapshot = '';
 function snapshotForm(){
@@ -1457,14 +1553,18 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   const g = id => document.getElementById(id);
 
   // 入力チェック（不足があれば確認）
+  const deal = g('fDeal').value;
   const missing = [];
   if(!g('fRegArea').value) missing.push('登記面積');
   if(!g('fOwner').value.trim()) missing.push('所有者');
-  if(!g('fLaw').value) missing.push('適用法');
-  if(!g('fStart').value) missing.push('始期');
-  if(!g('fEnd').value) missing.push('終期');
-  if(!g('fRight').value) missing.push('権利の種類');
-  if(g('fRight').value !== '使用貸借' && !g('fRent').value) missing.push('借賃');
+  // 自己所有・自己耕作は契約が存在しないので契約系はチェックしない
+  if(deal !== '自己所有・自己耕作'){
+    if(!g('fLaw').value) missing.push('適用法');
+    if(!g('fStart').value) missing.push('始期');
+    if(!g('fEnd').value) missing.push('終期');
+    if(!g('fRight').value) missing.push('権利の種類');
+    if(g('fRight').value !== '使用貸借' && !g('fRent').value) missing.push('借賃');
+  }
   if(missing.length){
     if(!confirm(`次の項目が未入力です。\n\n・${missing.join('\n・')}\n\nこのまま保存しますか？`)) return;
   }
@@ -1478,6 +1578,7 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
     owner: g('fOwner').value,
     ownerAddr: g('fOwnerAddr').value,
     ownerTel: g('fOwnerTel').value,
+    deal: g('fDeal').value,
     karite: g('fKarite').value,
     law: g('fLaw').value,
     start: g('fStart').value,
@@ -1496,7 +1597,7 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   // 直前の入力内容を覚えておく（次の新規登録で引き継ぐ）
   lastEntry = {
     owner: rec.owner, ownerAddr: rec.ownerAddr, ownerTel: rec.ownerTel,
-    karite: rec.karite, law: rec.law,
+    deal: rec.deal, karite: rec.karite, law: rec.law,
     start: rec.start, end: rec.end, right: rec.right,
     rentMode: rec.rentMode, rentUnit: rec.rentUnit
   };
@@ -1766,9 +1867,24 @@ function renderList(){
   const oazaFilter = document.getElementById('oazaFilter').value;
   const rows = Object.entries(managed).filter(([fid,rec]) => {
     if(oazaFilter!=='all' && !(rec.oaza||'').startsWith(oazaFilter)) return false;
-    if(q && !rec.chiban.includes(q)) return false;
+    if(q && !String(rec.chiban||'').includes(q)) return false;
     return true;
   });
+
+  // 並び順：中新田（地番順）→ 堀兼（地番順）。「（元〇〇分）」は区別しない
+  rows.sort((a, b) => {
+    const ga = oazaGroupOrder(a[1].oaza);
+    const gb = oazaGroupOrder(b[1].oaza);
+    if(ga !== gb) return ga - gb;
+    const ka = chibanKey(a[1].chiban);
+    const kb = chibanKey(b[1].chiban);
+    for(let i=0;i<3;i++){
+      if(ka[i] < kb[i]) return -1;
+      if(ka[i] > kb[i]) return 1;
+    }
+    return 0;
+  });
+
   if(rows.length===0){
     body.innerHTML = `<div class="empty"><span class="big">🌷</span>まだ登録された筆はありません。<br>地図の区画をタップして登録してね。</div>`;
     return;
@@ -1781,11 +1897,12 @@ function renderList(){
     return `
     <div class="card-item" data-fid="${fid}">
       <div class="card-top">
-        <span class="st-pill" style="background:${stCol}">${escapeHtml(st)}</span>
+        <span class="st-pill" style="background:${stCol};color:${textOn(stCol)}">${escapeHtml(st)}</span>
         <span class="card-chiban">${escapeHtml(rec.chiban)}</span>
       </div>
       <div class="card-tags">
         <span class="tag oaza">${escapeHtml(combinedOazaKoaza(rec.oaza, rec.koaza))}</span>
+        ${usageOf(rec)==='他人に貸している'?`<span class="tag lent">🤝 貸出中</span>`:''}
         ${rec.karite && rec.karite!=='なし'?`<span class="tag karite">${escapeHtml(rec.karite)}</span>`:''}
       </div>
       <div class="card-meta">
@@ -1958,6 +2075,7 @@ document.getElementById('refreshBtn').addEventListener('click', async () => {
 // ================= 登録筆の一覧（全画面） =================
 const LM_COLS = [
   {key:'status',   label:'状態'},
+  {key:'usage',    label:'耕作'},
   {key:'oazaKoaza',label:'大字・小字'},
   {key:'chiban',   label:'地番'},
   {key:'area',     label:'面積(m²)'},
@@ -1981,8 +2099,11 @@ function lmRow(fid, rec){
   return {
     fid,
     status: statusOf(rec),
+    usage: usageOf(rec),
+    deal: rec.deal || '借りている',
     chiban: rec.chiban||'',
     oazaKoaza: combinedOazaKoaza(rec.oaza, rec.koaza),
+    oazaRaw: rec.oaza || '',
     area: area===''?'':Number(area),
     owner: rec.owner||'',
     ownerTel: rec.ownerTel||'',
@@ -2003,7 +2124,10 @@ function chibanKey(ch){
   return [parseInt(m[1],10), m[2]?parseInt(m[2],10):0, String(ch)];
 }
 function cmp(a, b, key){
-  if(key==='chiban'){
+  // 地番・大字小字は「中新田 → 堀兼」の順にまとめ、その中で地番順
+  if(key==='chiban' || key==='oazaKoaza'){
+    const ga = oazaGroupOrder(a.oazaRaw), gb = oazaGroupOrder(b.oazaRaw);
+    if(ga !== gb) return ga - gb;
     const ka=chibanKey(a.chiban), kb=chibanKey(b.chiban);
     for(let i=0;i<3;i++){ if(ka[i]<kb[i])return -1; if(ka[i]>kb[i])return 1; }
     return 0;
@@ -2058,13 +2182,21 @@ function renderLmTable(){
 
   document.getElementById('lmCount').textContent = rows.length + '件';
 
-  // 合計（面積・借賃）
+  // 合計（面積・支払う借賃・受け取る借賃）
   const totalArea = rows.reduce((s,r)=> s + (typeof r.area==='number'?r.area:0), 0);
-  const totalRent = rows.reduce((s,r)=> s + (typeof r.rent==='number'?r.rent:0), 0);
-  document.getElementById('lmTotals').innerHTML =
+  // 借りている＝支払い、貸している＝収入 として分けて集計する
+  const rentPay  = rows.filter(r => r.deal !== '貸している')
+                       .reduce((s,r)=> s + (typeof r.rent==='number'?r.rent:0), 0);
+  const rentGet  = rows.filter(r => r.deal === '貸している')
+                       .reduce((s,r)=> s + (typeof r.rent==='number'?r.rent:0), 0);
+  let totalsHtml =
     `<span>📐 面積合計 <b>${totalArea.toLocaleString(undefined,{maximumFractionDigits:2})}</b> m²` +
     `（<b>${(totalArea/100).toFixed(1)}</b> a）</span>` +
-    `<span>💰 借賃合計 <b>${totalRent.toLocaleString()}</b> 円</span>`;
+    `<span>💸 支払う借賃 <b>${rentPay.toLocaleString()}</b> 円</span>`;
+  if(rentGet > 0){
+    totalsHtml += `<span>💰 受け取る借賃 <b>${rentGet.toLocaleString()}</b> 円</span>`;
+  }
+  document.getElementById('lmTotals').innerHTML = totalsHtml;
 
   const head = document.getElementById('lmHead');
   head.innerHTML = LM_COLS.map(c => {
@@ -2086,7 +2218,12 @@ function renderLmTable(){
       let v = r[c.key];
       if(c.key==='status'){
         const col = STATUS_COLORS[v] || '#B9B2C9';
-        return `<td><span class="st-pill" style="background:${col}">${escapeHtml(v)}</span></td>`;
+        return `<td><span class="st-pill" style="background:${col};color:${textOn(col)}">${escapeHtml(v)}</span></td>`;
+      }
+      if(c.key==='usage'){
+        const col = USAGE_COLORS[v] || '#B9B2C9';
+        const short = (v==='他人に貸している') ? '貸出中' : '自社';
+        return `<td><span class="st-pill" style="background:${col};color:${textOn(col)}">${escapeHtml(short)}</span></td>`;
       }
       if(c.key==='rent' && v!=='') v = Number(v).toLocaleString();
       return `<td>${escapeHtml(v===''||v==null?'':String(v))}</td>`;
@@ -2121,13 +2258,14 @@ document.getElementById('alertBtn').addEventListener('click', () => {
 document.getElementById('sheetExportBtn').addEventListener('click', async () => {
   const rows = Object.entries(managed).map(([fid,rec]) => lmRow(fid, rec));
   rows.sort((a,b)=>cmp(a,b,'chiban'));
-  const header = ['状態','大字・小字','地番','面積_m2','所有者','所有者住所','所有者TEL','借受者','適用法','始期','終期','期間','権利の種類','借賃区分','10aあたり円','借賃円','メモ'];
+  const header = ['状態','耕作の状況','契約の区分','大字・小字','地番','面積_m2','所有者','所有者住所','所有者TEL','借受者','適用法','始期','終期','期間','権利の種類','借賃区分','10aあたり円','借賃円','メモ'];
   const modeLabel = m => m==='fixed' ? '固定借賃' : '10aあたり';
   const lines = [header.join('\t')];
   Object.entries(managed).sort((a,b)=>cmp(lmRow(a[0],a[1]),lmRow(b[0],b[1]),'chiban')).forEach(([fid,rec]) => {
     const area = (rec.regArea!==''&&rec.regArea!=null) ? rec.regArea : (rec.refArea??'');
     lines.push([
-      statusOf(rec), combinedOazaKoaza(rec.oaza,rec.koaza), rec.chiban||'', area,
+      statusOf(rec), usageOf(rec), rec.deal||'借りている',
+      combinedOazaKoaza(rec.oaza,rec.koaza), rec.chiban||'', area,
       rec.owner||'', rec.ownerAddr||'', rec.ownerTel||'',
       rec.karite||'', rec.law||'', rec.startWareki||'', rec.endWareki||'',
       rec.term||'', rec.right||'', modeLabel(rec.rentMode), rec.rentUnit||'', rec.rent||'', (rec.note||'').replace(/\t|\n/g,' ')
@@ -2223,7 +2361,10 @@ function persistColors(){
 function valueCounts(field){
   const c = {};
   Object.values(managed).forEach(r => {
-    const v = (field==='status') ? statusOf(r) : (r[field] || '（未設定）');
+    let v;
+    if(field==='status') v = statusOf(r);
+    else if(field==='usage') v = usageOf(r);
+    else v = r[field] || '（未設定）';
     c[v] = (c[v]||0)+1;
   });
   return c;
@@ -2239,9 +2380,10 @@ function renderColorRules(){
   vals.forEach(v => {
     if(v==='（未設定）') return;
     if(!colorMap[colorByField][v]){
-      colorMap[colorByField][v] = (colorByField==='status' && STATUS_COLORS[v])
-        ? STATUS_COLORS[v]
-        : DEFAULT_PALETTE[pi % DEFAULT_PALETTE.length];
+      colorMap[colorByField][v] =
+        (colorByField==='status' && STATUS_COLORS[v]) ? STATUS_COLORS[v] :
+        (colorByField==='usage'  && USAGE_COLORS[v])  ? USAGE_COLORS[v]  :
+        DEFAULT_PALETTE[pi % DEFAULT_PALETTE.length];
     }
     pi++;
   });
@@ -2299,7 +2441,7 @@ document.getElementById('helpClose').addEventListener('click', closeHelp);
 helpOverlay.addEventListener('click', closeHelp);
 
 // ================= 共有の設定手順モーダル =================
-const GAS_CODE = "/**\n * プラウド台帳 ─ Googleスプレッドシート連携スクリプト\n * ------------------------------------------------------------\n * このコードをGoogleスプレッドシートの Apps Script に貼り付けて\n * 「ウェブアプリ」として公開すると、台帳アプリと同期できます。\n * ------------------------------------------------------------\n */\n\n// ★★ 合言葉（パスワード）★★\n// 家族・従業員だけが使えるよう、ここを必ず自分だけの文字列に変えてください。\n// アプリ側にも同じ合言葉を入力します。これを知らない人はデータを見られません。\nvar PASSWORD = 'ここを好きな合言葉に変更してください';\n\n// 保存先シート名（自動で作られます）\nvar SHEET_NAME = '台帳';\n\n// 列の順番（このとおりにヘッダーが作られます）\nvar HEADERS = ['筆ID','大字','小字','地番','登記面積_m2','参考面積_m2','所有者','所有者住所','所有者TEL','借受者','適用法','始期','終期','期間','権利の種類','手動ステータス','借賃区分','10aあたり円','借賃円','メモ','始期YM','終期YM'];\n\n// 文字として扱う列（1始まり）：地番・大字・小字・始期・終期・期間・始期YM・終期YM など\nfunction textColumns_() {\n  var cols = [];\n  var names = ['大字','小字','地番','所有者','所有者住所','所有者TEL','借受者','適用法',\n               '始期','終期','期間','権利の種類','手動ステータス','借賃区分','メモ','始期YM','終期YM'];\n  for (var i = 0; i < HEADERS.length; i++) {\n    if (names.indexOf(HEADERS[i]) !== -1) cols.push(i + 1);\n  }\n  return cols;\n}\n\n// 指定行の文字列列をテキスト書式に固定する\nfunction setTextFormat_(sh, row) {\n  var cols = textColumns_();\n  for (var i = 0; i < cols.length; i++) {\n    sh.getRange(row, cols[i]).setNumberFormat('@');\n  }\n}\n\n// \"YYYY-MM\" 文字列に正規化（スプレッドシートが日付に変換していた場合にも対応）\n// セルの値を安全に文字列化。\n// スプレッドシートが「1102」「17-1」を日付として解釈してしまうことがあるため、\n// Date が返ってきた場合は年（＝元の地番）を復元する\nfunction txt_(v) {\n  if (v === null || v === undefined) return '';\n  if (Object.prototype.toString.call(v) === '[object Date]') {\n    // 例: 地番「1102」→ 1102年1月1日 として保存されてしまったケース\n    var y = v.getFullYear();\n    var m = v.getMonth() + 1;\n    var d = v.getDate();\n    if (m === 1 && d === 1) return String(y);          // 「1102」形式\n    return String(y) + '-' + m;                        // 「17-1」形式など\n  }\n  return String(v);\n}\n\nfunction toYM_(v) {\n  if (v === null || v === undefined || v === '') return '';\n  if (Object.prototype.toString.call(v) === '[object Date]') {\n    var y = v.getFullYear();\n    var m = v.getMonth() + 1;\n    return y + '-' + (m < 10 ? '0' + m : String(m));\n  }\n  return String(v);\n}\n\nfunction getSheet_() {\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var sh = ss.getSheetByName(SHEET_NAME);\n  if (!sh) {\n    sh = ss.insertSheet(SHEET_NAME);\n    sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);\n    sh.setFrozenRows(1);\n  }\n  // ヘッダーが無ければ入れる\n  if (sh.getLastRow() === 0) {\n    sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);\n    sh.setFrozenRows(1);\n  }\n  // 地番「1102」や和暦「R4.6.1」が日付・数値に化けるため、文字列の列をテキスト書式に固定\n  var cols = textColumns_();\n  for (var c = 0; c < cols.length; c++) {\n    sh.getRange(1, cols[c], sh.getMaxRows(), 1).setNumberFormat('@');\n  }\n  return sh;\n}\n\n// 全レコードを {筆ID: {...}} 形式で返す\nfunction readAll_() {\n  var sh = getSheet_();\n  var last = sh.getLastRow();\n  var records = {};\n  if (last < 2) return records;\n  var values = sh.getRange(2, 1, last - 1, HEADERS.length).getValues();\n  for (var i = 0; i < values.length; i++) {\n    var row = values[i];\n    var fid = String(row[0]);\n    if (!fid) continue;\n    records[fid] = {\n      oaza:      txt_(row[1]),\n      koaza:     txt_(row[2]),\n      chiban:    txt_(row[3]),\n      regArea:   row[4] === '' ? '' : Number(row[4]),\n      refArea:   row[5] === '' ? '' : Number(row[5]),\n      owner:     txt_(row[6]),\n      ownerAddr: txt_(row[7]),\n      ownerTel:  txt_(row[8]),\n      karite:    txt_(row[9]),\n      law:       txt_(row[10]),\n      startWareki: txt_(row[11]),\n      endWareki:   txt_(row[12]),\n      term:      txt_(row[13]),\n      right:     txt_(row[14]),\n      status:    txt_(row[15]),\n      rentMode:  row[16] === '固定借賃' ? 'fixed' : 'per10a',\n      rentUnit:  row[17] === '' ? '' : Number(row[17]),\n      rent:      row[18] === '' ? '' : Number(row[18]),\n      note:      txt_(row[19]),\n      start:     toYM_(row[20]),\n      end:       toYM_(row[21])\n    };\n  }\n  return records;\n}\n\n// 筆IDの行番号を探す（無ければ -1）\nfunction findRow_(sh, fid) {\n  var last = sh.getLastRow();\n  if (last < 2) return -1;\n  var ids = sh.getRange(2, 1, last - 1, 1).getValues();\n  for (var i = 0; i < ids.length; i++) {\n    if (String(ids[i][0]) === String(fid)) return i + 2;\n  }\n  return -1;\n}\n\n// 合言葉のチェック\nfunction authOk_(pw) {\n  return String(pw || '') === String(PASSWORD);\n}\nfunction denied_() {\n  return ContentService.createTextOutput(JSON.stringify({ ok: false, error: 'auth', message: '合言葉が違います' }))\n    .setMimeType(ContentService.MimeType.JSON);\n}\n\n// GET: 一覧取得\nfunction doGet(e) {\n  var pw = (e && e.parameter) ? e.parameter.pw : '';\n  if (!authOk_(pw)) return denied_();\n  var out = { ok: true, records: readAll_() };\n  return ContentService.createTextOutput(JSON.stringify(out))\n    .setMimeType(ContentService.MimeType.JSON);\n}\n\n// POST: 追加/更新 or 削除\nfunction doPost(e) {\n  var lock = LockService.getScriptLock();\n  lock.waitLock(20000);\n  try {\n    var body = JSON.parse(e.postData.contents);\n    if (!authOk_(body.pw)) return denied_();\n    var sh = getSheet_();\n\n    if (body.action === 'delete') {\n      var r = findRow_(sh, body.fid);\n      if (r > 0) sh.deleteRow(r);\n      return ok_();\n    }\n\n    // upsert\n    var rec = body.record || {};\n    var modeLabel = rec.rentMode === 'fixed' ? '固定借賃' : '10aあたり';\n    var rowData = [\n      body.fid,\n      rec.oaza || '',\n      rec.koaza || '',\n      rec.chiban || '',\n      (rec.regArea === undefined || rec.regArea === null) ? '' : rec.regArea,\n      (rec.refArea === undefined || rec.refArea === null) ? '' : rec.refArea,\n      rec.owner || '',\n      rec.ownerAddr || '',\n      rec.ownerTel || '',\n      rec.karite || '',\n      rec.law || '',\n      rec.startWareki || '',\n      rec.endWareki || '',\n      rec.term || '',\n      rec.right || '',\n      rec.status || '',\n      modeLabel,\n      (rec.rentUnit === undefined || rec.rentUnit === null) ? '' : rec.rentUnit,\n      (rec.rent === undefined || rec.rent === null) ? '' : rec.rent,\n      rec.note || '',\n      rec.start || '',\n      rec.end || ''\n    ];\n    var row = findRow_(sh, body.fid);\n    if (row > 0) {\n      sh.getRange(row, 1, 1, HEADERS.length).setValues([rowData]);\n    } else {\n      sh.appendRow(rowData);\n      row = sh.getLastRow();\n    }\n    // 文字列の列がスプレッドシートに日付・数値へ勝手に変換されるのを防ぐ\n    // （地番「1102」や和暦「R4.6.1」が日付になってしまう問題の対策）\n    setTextFormat_(sh, row);\n    return ok_();\n  } catch (err) {\n    return ContentService.createTextOutput(JSON.stringify({ ok: false, error: String(err) }))\n      .setMimeType(ContentService.MimeType.JSON);\n  } finally {\n    lock.releaseLock();\n  }\n}\n\nfunction ok_() {\n  return ContentService.createTextOutput(JSON.stringify({ ok: true }))\n    .setMimeType(ContentService.MimeType.JSON);\n}\n";
+const GAS_CODE = "/**\n * プラウド台帳 ─ Googleスプレッドシート連携スクリプト\n * ------------------------------------------------------------\n * このコードをGoogleスプレッドシートの Apps Script に貼り付けて\n * 「ウェブアプリ」として公開すると、台帳アプリと同期できます。\n * ------------------------------------------------------------\n */\n\n// ★★ 合言葉（パスワード）★★\n// 家族・従業員だけが使えるよう、ここを必ず自分だけの文字列に変えてください。\n// アプリ側にも同じ合言葉を入力します。これを知らない人はデータを見られません。\nvar PASSWORD = 'ここを好きな合言葉に変更してください';\n\n// 保存先シート名（自動で作られます）\nvar SHEET_NAME = '台帳';\n\n// 列の順番（このとおりにヘッダーが作られます）\nvar HEADERS = ['筆ID','大字','小字','地番','登記面積_m2','参考面積_m2','所有者','所有者住所','所有者TEL','契約の区分','借受者','適用法','始期','終期','期間','権利の種類','手動ステータス','借賃区分','10aあたり円','借賃円','メモ','始期YM','終期YM'];\n\n// 文字として扱う列（1始まり）：地番・大字・小字・始期・終期・期間・始期YM・終期YM など\nfunction textColumns_() {\n  var cols = [];\n  var names = ['大字','小字','地番','所有者','所有者住所','所有者TEL','契約の区分','借受者','適用法',\n               '契約の区分','始期','終期','期間','権利の種類','手動ステータス','借賃区分','メモ','始期YM','終期YM'];\n  for (var i = 0; i < HEADERS.length; i++) {\n    if (names.indexOf(HEADERS[i]) !== -1) cols.push(i + 1);\n  }\n  return cols;\n}\n\n// 指定行の文字列列をテキスト書式に固定する\nfunction setTextFormat_(sh, row) {\n  var cols = textColumns_();\n  for (var i = 0; i < cols.length; i++) {\n    sh.getRange(row, cols[i]).setNumberFormat('@');\n  }\n}\n\n// \"YYYY-MM\" 文字列に正規化（スプレッドシートが日付に変換していた場合にも対応）\n// セルの値を安全に文字列化。\n// スプレッドシートが「1102」「17-1」を日付として解釈してしまうことがあるため、\n// Date が返ってきた場合は年（＝元の地番）を復元する\nfunction txt_(v) {\n  if (v === null || v === undefined) return '';\n  if (Object.prototype.toString.call(v) === '[object Date]') {\n    // 例: 地番「1102」→ 1102年1月1日 として保存されてしまったケース\n    var y = v.getFullYear();\n    var m = v.getMonth() + 1;\n    var d = v.getDate();\n    if (m === 1 && d === 1) return String(y);          // 「1102」形式\n    return String(y) + '-' + m;                        // 「17-1」形式など\n  }\n  return String(v);\n}\n\nfunction toYM_(v) {\n  if (v === null || v === undefined || v === '') return '';\n  if (Object.prototype.toString.call(v) === '[object Date]') {\n    var y = v.getFullYear();\n    var m = v.getMonth() + 1;\n    return y + '-' + (m < 10 ? '0' + m : String(m));\n  }\n  return String(v);\n}\n\nfunction getSheet_() {\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var sh = ss.getSheetByName(SHEET_NAME);\n  if (!sh) {\n    sh = ss.insertSheet(SHEET_NAME);\n    sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);\n    sh.setFrozenRows(1);\n  }\n  // ヘッダーが無ければ入れる\n  if (sh.getLastRow() === 0) {\n    sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);\n    sh.setFrozenRows(1);\n  }\n  // 地番「1102」や和暦「R4.6.1」が日付・数値に化けるため、文字列の列をテキスト書式に固定\n  var cols = textColumns_();\n  for (var c = 0; c < cols.length; c++) {\n    sh.getRange(1, cols[c], sh.getMaxRows(), 1).setNumberFormat('@');\n  }\n  return sh;\n}\n\n// 全レコードを {筆ID: {...}} 形式で返す\nfunction readAll_() {\n  var sh = getSheet_();\n  var last = sh.getLastRow();\n  var records = {};\n  if (last < 2) return records;\n  var values = sh.getRange(2, 1, last - 1, HEADERS.length).getValues();\n  for (var i = 0; i < values.length; i++) {\n    var row = values[i];\n    var fid = String(row[0]);\n    if (!fid) continue;\n    // 列名で引く（列を足しても位置ズレが起きないように）\n    function col(name) { return row[HEADERS.indexOf(name)]; }\n    function num(name) { var v = col(name); return (v === '' || v === null || v === undefined) ? '' : Number(v); }\n    records[fid] = {\n      oaza:      txt_(col('大字')),\n      koaza:     txt_(col('小字')),\n      chiban:    txt_(col('地番')),\n      regArea:   num('登記面積_m2'),\n      refArea:   num('参考面積_m2'),\n      owner:     txt_(col('所有者')),\n      ownerAddr: txt_(col('所有者住所')),\n      ownerTel:  txt_(col('所有者TEL')),\n      deal:      txt_(col('契約の区分')) || '借りている',\n      karite:    txt_(col('借受者')),\n      law:       txt_(col('適用法')),\n      startWareki: txt_(col('始期')),\n      endWareki:   txt_(col('終期')),\n      term:      txt_(col('期間')),\n      right:     txt_(col('権利の種類')),\n      status:    txt_(col('手動ステータス')),\n      rentMode:  txt_(col('借賃区分')) === '固定借賃' ? 'fixed' : 'per10a',\n      rentUnit:  num('10aあたり円'),\n      rent:      num('借賃円'),\n      note:      txt_(col('メモ')),\n      start:     toYM_(col('始期YM')),\n      end:       toYM_(col('終期YM'))\n    };\n  }\n  return records;\n}\n\n// 筆IDの行番号を探す（無ければ -1）\nfunction findRow_(sh, fid) {\n  var last = sh.getLastRow();\n  if (last < 2) return -1;\n  var ids = sh.getRange(2, 1, last - 1, 1).getValues();\n  for (var i = 0; i < ids.length; i++) {\n    if (String(ids[i][0]) === String(fid)) return i + 2;\n  }\n  return -1;\n}\n\n// 合言葉のチェック\nfunction authOk_(pw) {\n  return String(pw || '') === String(PASSWORD);\n}\nfunction denied_() {\n  return ContentService.createTextOutput(JSON.stringify({ ok: false, error: 'auth', message: '合言葉が違います' }))\n    .setMimeType(ContentService.MimeType.JSON);\n}\n\n// GET: 一覧取得\nfunction doGet(e) {\n  var pw = (e && e.parameter) ? e.parameter.pw : '';\n  if (!authOk_(pw)) return denied_();\n  var out = { ok: true, records: readAll_() };\n  return ContentService.createTextOutput(JSON.stringify(out))\n    .setMimeType(ContentService.MimeType.JSON);\n}\n\n// POST: 追加/更新 or 削除\nfunction doPost(e) {\n  var lock = LockService.getScriptLock();\n  lock.waitLock(20000);\n  try {\n    var body = JSON.parse(e.postData.contents);\n    if (!authOk_(body.pw)) return denied_();\n    var sh = getSheet_();\n\n    if (body.action === 'delete') {\n      var r = findRow_(sh, body.fid);\n      if (r > 0) sh.deleteRow(r);\n      return ok_();\n    }\n\n    // upsert\n    var rec = body.record || {};\n    var blank = function (v) { return (v === undefined || v === null) ? '' : v; };\n\n    // 列名 → 値 の対応（HEADERSの並びから自動で行を組み立てる）\n    var vals = {\n      '筆ID':          body.fid,\n      '大字':          rec.oaza || '',\n      '小字':          rec.koaza || '',\n      '地番':          rec.chiban || '',\n      '登記面積_m2':   blank(rec.regArea),\n      '参考面積_m2':   blank(rec.refArea),\n      '所有者':        rec.owner || '',\n      '所有者住所':    rec.ownerAddr || '',\n      '所有者TEL':     rec.ownerTel || '',\n      '契約の区分':    rec.deal || '借りている',\n      '借受者':        rec.karite || '',\n      '適用法':        rec.law || '',\n      '始期':          rec.startWareki || '',\n      '終期':          rec.endWareki || '',\n      '期間':          rec.term || '',\n      '権利の種類':    rec.right || '',\n      '手動ステータス': rec.status || '',\n      '借賃区分':      rec.rentMode === 'fixed' ? '固定借賃' : '10aあたり',\n      '10aあたり円':   blank(rec.rentUnit),\n      '借賃円':        blank(rec.rent),\n      'メモ':          rec.note || '',\n      '始期YM':        rec.start || '',\n      '終期YM':        rec.end || ''\n    };\n    var rowData = [];\n    for (var h = 0; h < HEADERS.length; h++) {\n      rowData.push(blank(vals[HEADERS[h]]));\n    }\n\n    var row = findRow_(sh, body.fid);\n    if (row > 0) {\n      sh.getRange(row, 1, 1, HEADERS.length).setValues([rowData]);\n    } else {\n      sh.appendRow(rowData);\n      row = sh.getLastRow();\n    }\n    // 文字列の列がスプレッドシートに日付・数値へ勝手に変換されるのを防ぐ\n    // （地番「1102」や和暦「R4.6.1」が日付になってしまう問題の対策）\n    setTextFormat_(sh, row);\n    return ok_();\n  } catch (err) {\n    return ContentService.createTextOutput(JSON.stringify({ ok: false, error: String(err) }))\n      .setMimeType(ContentService.MimeType.JSON);\n  } finally {\n    lock.releaseLock();\n  }\n}\n\nfunction ok_() {\n  return ContentService.createTextOutput(JSON.stringify({ ok: true }))\n    .setMimeType(ContentService.MimeType.JSON);\n}\n";
 const guideModal = document.getElementById('guideModal');
 const guideOverlay = document.getElementById('guideOverlay');
 document.getElementById('guideBtn').addEventListener('click', () => {
