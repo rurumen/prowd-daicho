@@ -706,6 +706,7 @@
     <div class="lm-actions">
       <select id="lmStatusFilter" class="lm-filter">
         <option value="all">すべての状態</option>
+        <option value="alert">⚠️ 要更新＋期限切れ</option>
         <option value="要更新">要更新</option>
         <option value="期限切れ">期限切れ</option>
         <option value="契約中">契約中</option>
@@ -2236,12 +2237,23 @@ function cmp(a, b, key){
   return String(va).localeCompare(String(vb),'ja');
 }
 
-function openListModal(){
+// filter を渡すとその状態で絞り込んで開く（⚠️から開くとき用）。
+// 通常の一覧ボタンから開くときは、前回の絞り込み・検索をリセットして全件表示にする。
+function openListModal(filter){
+  const sf = document.getElementById('lmStatusFilter');
+  const sq = document.getElementById('lmSearch');
+  if(filter){
+    sf.value = filter;
+  } else {
+    sf.value = 'all';
+    sq.value = '';
+    document.getElementById('lmSearchClear').style.display = 'none';
+  }
   document.getElementById('listModal').classList.add('open');
   renderLmTable();
 }
 function closeListModal(){ document.getElementById('listModal').classList.remove('open'); }
-document.getElementById('openListBtn').addEventListener('click', openListModal);
+document.getElementById('openListBtn').addEventListener('click', () => openListModal());
 document.getElementById('lmClose').addEventListener('click', closeListModal);
 document.getElementById('lmSearch').addEventListener('input', function(){
   document.getElementById('lmSearchClear').style.display = this.value ? 'flex' : 'none';
@@ -2269,7 +2281,11 @@ function renderLmTable(){
   const q = document.getElementById('lmSearch').value.trim().toLowerCase();
   const sf = document.getElementById('lmStatusFilter').value;
   let rows = Object.entries(managed).map(([fid,rec]) => lmRow(fid, rec));
-  if(sf !== 'all') rows = rows.filter(r => r.status === sf);
+  if(sf === 'alert'){
+    rows = rows.filter(r => r.status === '要更新' || r.status === '期限切れ');
+  } else if(sf !== 'all'){
+    rows = rows.filter(r => r.status === sf);
+  }
   if(q){
     rows = rows.filter(r => [r.chiban,r.oazaKoaza,r.owner,r.ownerTel,r.karite,r.law,r.note,r.status]
       .some(v => String(v).toLowerCase().includes(q)));
@@ -2345,9 +2361,8 @@ function updateAlert(){
   btn.style.display = need>0 ? '' : 'none';
 }
 document.getElementById('alertBtn').addEventListener('click', () => {
-  openListModal();
-  document.getElementById('lmStatusFilter').value = '要更新';
-  renderLmTable();
+  // ⚠️の件数は「要更新＋期限切れ」なので、一覧も同じ条件で絞り込む
+  openListModal('alert');
 });
 
 // スプレッドシート貼り付け用（TSVをクリップボードへ）＋ TSVファイルダウンロード
