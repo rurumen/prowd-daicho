@@ -137,6 +137,12 @@
     font-family:'M PLUS Rounded 1c',sans-serif;
   }
   .search-clear:hover{background:var(--berry);color:#fff;}
+  @media (max-width:600px){
+    /* スマホでは検索欄を1行使い、プレースホルダが切れないようにする */
+    .toolbar{gap:6px;}
+    .search-wrap{flex-basis:100%;}
+    select.oaza-filter{flex:1;}
+  }
   .lm-search-wrap{width:100%;flex:none;}
   .lm-search-wrap #lmSearch{padding-right:34px;}
   select.oaza-filter{
@@ -209,6 +215,16 @@
   .detail-head .close{background:rgba(255,255,255,.6);border:none;width:30px;height:30px;
     border-radius:50%;font-size:18px;cursor:pointer;color:var(--ink);line-height:1;align-self:center;}
   /* しまったときに再表示するタブ（画面下・スマホ向け） */
+  .back-list-tab{
+    position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:1050;
+    background:var(--grape-deep);color:#fff;border:none;border-radius:22px;padding:12px 22px;
+    font-family:'M PLUS Rounded 1c',sans-serif;font-size:13px;font-weight:700;cursor:pointer;
+    box-shadow:0 6px 18px rgba(155,123,224,.45);max-width:88vw;white-space:nowrap;
+  }
+  .back-list-tab:hover{background:#7d5fc4;}
+  .lm-group-table td{padding:10px 14px;}
+  .lm-group-table tbody tr{cursor:pointer;}
+  .lm-group-table tbody tr:hover{background:var(--lemon);}
   .peek-tab{
     position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:1050;
     background:var(--berry);color:#fff;border:none;border-radius:22px;padding:12px 20px;
@@ -418,7 +434,7 @@
     @page{ size: A4 landscape; margin: 10mm; }
     html, body{background:#fff !important; height:auto !important; overflow:visible !important;}
     /* 画面用の要素は完全に消す（残っていると空白ページが出る） */
-    .app, .detail-panel, .overlay, .peek-tab, .sync-bar,
+    .app, .detail-panel, .overlay, .peek-tab, .back-list-tab, .sync-bar,
     .setup-modal, .lm-close, .lm-btn, #lmSearch, .lm-filter, .lm-actions{ display:none !important; }
     .list-modal{
       position:static !important; display:block !important; background:#fff !important;
@@ -476,7 +492,7 @@
     <div class="side">
       <div class="toolbar">
         <div class="search-wrap">
-          <input type="text" id="searchBox" placeholder="🔍 地番でさがす（例: 1094-1）">
+          <input type="text" id="searchBox" placeholder="🔍 地番でさがす（例 1094-1）">
           <button type="button" class="search-clear" id="searchClear" title="クリア" style="display:none;">×</button>
         </div>
         <select class="oaza-filter" id="oazaFilter">
@@ -691,6 +707,7 @@
 </div>
 
 <button class="peek-tab" id="peekTab" style="display:none;">📋 <span id="peekChiban"></span> の入力にもどる</button>
+<button class="back-list-tab" id="backToList" style="display:none;">↩️ 一覧にもどる</button>
 
 <!-- 登録筆の一覧（全画面） -->
 <div class="list-modal" id="listModal">
@@ -716,6 +733,21 @@
         <option value="解約予定">解約予定</option>
         <option value="未契約">未契約</option>
       </select>
+      <select id="lmGroupBy" class="lm-filter">
+        <option value="">📊 集計しない（一覧表示）</option>
+        <option value="owner">所有者ごとに集計</option>
+        <option value="karite">借受者ごとに集計</option>
+        <option value="oazaGroup">大字ごとに集計</option>
+        <option value="oazaKoaza">大字・小字ごとに集計</option>
+        <option value="status">状態ごとに集計</option>
+        <option value="usage">耕作の状況ごとに集計</option>
+        <option value="law">適用法ごとに集計</option>
+        <option value="right">権利の種類ごとに集計</option>
+        <option value="startWareki">始期ごとに集計</option>
+        <option value="endWareki">終期ごとに集計</option>
+        <option value="term">期間ごとに集計</option>
+      </select>
+      <button class="lm-btn ghost" id="lmResetBtn">↩️ 表示をリセット</button>
       <button class="lm-btn ghost" id="ownerMgrBtn">👥 所有者を一括編集</button>
       <button class="lm-btn ghost" id="printBtn">🖨️ 印刷 / PDF</button>
       <button class="lm-btn export" id="sheetExportBtn">📤 スプレッドシートにコピー</button>
@@ -726,6 +758,10 @@
     <table class="lm-table" id="lmTable">
       <thead><tr id="lmHead"></tr></thead>
       <tbody id="lmBody"></tbody>
+    </table>
+    <table class="lm-table lm-group-table" id="lmGroupTable" style="display:none;">
+      <thead><tr id="lmGroupHead"></tr></thead>
+      <tbody id="lmGroupBody"></tbody>
     </table>
     <div class="lm-empty" id="lmEmpty" style="display:none;">まだ登録された筆はありません。</div>
   </div>
@@ -1094,7 +1130,11 @@ function buildLayer(){
     onEachFeature: (feature, layer) => {
       const fid = feature.properties['筆ID'];
       layerById[fid] = layer;
-      layer.on('click', () => openDetail(fid));
+      layer.on('click', () => {
+        lastListView = null;   // 地図から直接開いた場合は「一覧にもどる」を出さない
+        hideBackToList();
+        openDetail(fid);
+      });
     }
   }).addTo(map);
   geoLayer.bringToFront();
@@ -2240,15 +2280,14 @@ function cmp(a, b, key){
 // filter を渡すとその状態で絞り込んで開く（⚠️から開くとき用）。
 // 通常の一覧ボタンから開くときは、前回の絞り込み・検索をリセットして全件表示にする。
 function openListModal(filter){
-  const sf = document.getElementById('lmStatusFilter');
-  const sq = document.getElementById('lmSearch');
   if(filter){
-    sf.value = filter;
+    resetListView();
+    document.getElementById('lmStatusFilter').value = filter;
   } else {
-    sf.value = 'all';
-    sq.value = '';
-    document.getElementById('lmSearchClear').style.display = 'none';
+    resetListView();
   }
+  lastListView = null;
+  hideBackToList();
   document.getElementById('listModal').classList.add('open');
   renderLmTable();
 }
@@ -2310,6 +2349,30 @@ function renderLmTable(){
   }
   document.getElementById('lmTotals').innerHTML = totalsHtml;
 
+  const groupBy = document.getElementById('lmGroupBy').value;
+  const table = document.getElementById('lmTable');
+  const gTable = document.getElementById('lmGroupTable');
+  const empty = document.getElementById('lmEmpty');
+
+  if(rows.length===0){
+    document.getElementById('lmBody').innerHTML='';
+    document.getElementById('lmGroupBody').innerHTML='';
+    table.style.display=''; gTable.style.display='none';
+    empty.style.display='block';
+    return;
+  }
+  empty.style.display='none';
+
+  // ===== 集計モード =====
+  if(groupBy){
+    table.style.display='none';
+    gTable.style.display='';
+    renderGroupTable(rows, groupBy);
+    return;
+  }
+  table.style.display='';
+  gTable.style.display='none';
+
   const head = document.getElementById('lmHead');
   head.innerHTML = LM_COLS.map(c => {
     const arrow = c.key===lmSortKey ? `<span class="arrow">${lmSortAsc?'▲':'▼'}</span>` : '';
@@ -2322,9 +2385,6 @@ function renderLmTable(){
   }));
 
   const body = document.getElementById('lmBody');
-  const empty = document.getElementById('lmEmpty');
-  if(rows.length===0){ body.innerHTML=''; empty.style.display='block'; return; }
-  empty.style.display='none';
   body.innerHTML = rows.map(r => `<tr data-fid="${r.fid}">` +
     LM_COLS.map(c => {
       let v = r[c.key];
@@ -2341,13 +2401,119 @@ function renderLmTable(){
       return `<td>${escapeHtml(v===''||v==null?'':String(v))}</td>`;
     }).join('') + `</tr>`).join('');
   body.querySelectorAll('tr').forEach(tr => tr.addEventListener('click', () => {
+    // 一覧に戻れるよう、今の絞り込み状態を覚えてから地図へ飛ぶ
+    lastListView = {
+      status: document.getElementById('lmStatusFilter').value,
+      group:  document.getElementById('lmGroupBy').value,
+      search: document.getElementById('lmSearch').value,
+      sortKey: lmSortKey, sortAsc: lmSortAsc
+    };
     closeListModal();
     openDetail(tr.dataset.fid);
+    showBackToList();
   }));
 }
+
+// ===== 集計表 =====
+const GROUP_LABELS = {
+  owner:'所有者', karite:'借受者', oazaGroup:'大字', oazaKoaza:'大字・小字',
+  status:'状態', usage:'耕作の状況', law:'適用法', right:'権利の種類',
+  startWareki:'始期', endWareki:'終期', term:'期間'
+};
+function groupKeyOf(r, key){
+  if(key === 'oazaGroup'){
+    const g = oazaGroupOrder(r.oazaRaw);
+    return g===0 ? '中新田' : (g===1 ? '堀兼' : 'その他');
+  }
+  return r[key] || '（未設定）';
+}
+function renderGroupTable(rows, key){
+  const groups = {};
+  rows.forEach(r => {
+    const k = groupKeyOf(r, key);
+    if(!groups[k]) groups[k] = {n:0, area:0, pay:0, get:0};
+    const g = groups[k];
+    g.n++;
+    if(typeof r.area==='number') g.area += r.area;
+    if(typeof r.rent==='number'){
+      if(r.deal === '貸している') g.get += r.rent; else g.pay += r.rent;
+    }
+  });
+  // 筆数の多い順
+  const names = Object.keys(groups).sort((a,b)=> groups[b].n - groups[a].n || a.localeCompare(b,'ja'));
+
+  const anyGet = names.some(n => groups[n].get > 0);
+  const cols = ['筆数','面積(m²)','面積(a)','支払う借賃(円)'];
+  if(anyGet) cols.push('受け取る借賃(円)');
+
+  document.getElementById('lmGroupHead').innerHTML =
+    `<th>${escapeHtml(GROUP_LABELS[key]||key)}</th>` + cols.map(c=>`<th>${c}</th>`).join('');
+
+  const gb = document.getElementById('lmGroupBody');
+  gb.innerHTML = names.map(n => {
+    const g = groups[n];
+    let tds =
+      `<td><b>${escapeHtml(n)}</b></td>` +
+      `<td>${g.n}</td>` +
+      `<td>${g.area.toLocaleString(undefined,{maximumFractionDigits:2})}</td>` +
+      `<td>${(g.area/100).toFixed(1)}</td>` +
+      `<td>${g.pay.toLocaleString()}</td>`;
+    if(anyGet) tds += `<td>${g.get.toLocaleString()}</td>`;
+    return `<tr data-group="${escapeHtml(n)}">${tds}</tr>`;
+  }).join('');
+
+  // 集計行をクリックすると、その内訳（一覧）に切り替える
+  gb.querySelectorAll('tr').forEach(tr => tr.addEventListener('click', () => {
+    document.getElementById('lmGroupBy').value = '';
+    document.getElementById('lmSearch').value = tr.dataset.group;
+    document.getElementById('lmSearchClear').style.display = 'flex';
+    renderLmTable();
+  }));
+  document.getElementById('lmCount').textContent = names.length + 'グループ';
+}
 document.getElementById('lmStatusFilter').addEventListener('change', renderLmTable);
+document.getElementById('lmGroupBy').addEventListener('change', renderLmTable);
 document.getElementById('printBtn').addEventListener('click', () => {
   window.print();
+});
+
+// 「表示をリセット」：絞り込み・集計・検索・並び順をすべて初期状態に戻す
+function resetListView(){
+  document.getElementById('lmStatusFilter').value = 'all';
+  document.getElementById('lmGroupBy').value = '';
+  document.getElementById('lmSearch').value = '';
+  document.getElementById('lmSearchClear').style.display = 'none';
+  lmSortKey = 'chiban';   // 初期は中新田の地番順 → 堀兼の地番順
+  lmSortAsc = true;
+}
+document.getElementById('lmResetBtn').addEventListener('click', () => {
+  resetListView();
+  renderLmTable();
+});
+
+// ===== 一覧へ戻る（地図から絞り込み状態のまま戻れるように）=====
+let lastListView = null;
+function showBackToList(){
+  const btn = document.getElementById('backToList');
+  if(!btn || !lastListView) return;
+  btn.style.display = 'block';
+}
+function hideBackToList(){
+  const btn = document.getElementById('backToList');
+  if(btn) btn.style.display = 'none';
+}
+document.getElementById('backToList').addEventListener('click', () => {
+  if(!lastListView) return;
+  document.getElementById('lmStatusFilter').value = lastListView.status;
+  document.getElementById('lmGroupBy').value = lastListView.group;
+  document.getElementById('lmSearch').value = lastListView.search;
+  document.getElementById('lmSearchClear').style.display = lastListView.search ? 'flex' : 'none';
+  lmSortKey = lastListView.sortKey;
+  lmSortAsc = lastListView.sortAsc;
+  hideBackToList();
+  closeDetail(true);
+  document.getElementById('listModal').classList.add('open');
+  renderLmTable();
 });
 
 // 期限アラート（要更新＋期限切れ）
